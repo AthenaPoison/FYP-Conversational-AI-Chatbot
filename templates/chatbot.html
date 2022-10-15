@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    html, body{
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      padding: 0;
+      background: #efefef; 
+  }
+  .chat-box{
+      height: 500px;
+      width: 50%;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius:5px;
+      box-shadow: 0px 5px 35px 9px #ccc;
+  }
+  .chat-header{
+      background: #5A5EB9;
+      color: #efefef;
+      font-size:20px;
+      text-align: center;
+      height: 70px;
+      padding-top: 17px;
+      border-top-left-radius:5px;
+      border-top-right-radius:5px;
+      box-shadow: 0px 5px 35px 9px #ccc;
+      width: 100%;
+  }
+  
+  .chat-body{
+      position: relative;
+      height: 370px;
+      height: auto;
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background: #dcdde6;
+  }
+  
+  .chat-body::after{   
+      content: "";
+      top: 0;
+      left: 0;
+      bottom: 0;
+  }
+  
+  #chat-input{
+      background: #f4f7f9;
+      width: 100%;
+      height: 47px;
+      border: none;
+      resize: none;
+      border-bottom-right-radius: 5px;
+      outline: none;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-bottom-left-radius: 5px;
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding-left: 15px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      padding-right: 50px;
+  }
+  
+  .chat-input form{
+      margin-bottom: 0;
+  }
+  
+  .chat-submit{
+      position: absolute;
+      background: transparent;
+      border: none;
+      color:#5A5EB9;
+      height: 35px;
+      width: 35px;
+      bottom: 3px;
+      right: 10px;
+      
+  }
+  
+  .chat-logs{
+      height: 370px;
+      overflow-y: scroll;
+  }
+  
+  .chat-logs::-webkit-scrollbar-track
+  {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+  }
+  
+  .chat-logs::-webkit-scrollbar
+  {
+    width: 5px;  
+    background-color: #F5F5F5;
+  }
+  
+  .chat-logs::-webkit-scrollbar-thumb
+  {
+    background-color: #5A5EB9;
+  }
+  
+  .cm-msg-text{
+      background: white;
+      padding: 10px 15px 10px 15px;
+      color: #666;
+      max-width: 75%;
+      float: left;
+      margin-left: 10px;
+      position: relative;
+      margin-bottom: 20px;
+      border-radius: 20px;
+  }
+  
+  .chat-msg{
+      clear: both;
+  }
+  
+  .chat-msg.self > .cm-msg-text{
+      float: right;
+      margin-right: 10px;
+      background: #5A5EB9;
+      color: white;
+  }
+  </style>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+  
+  <script>
+
+    $(function() {
+        var reply ="";
+        var INDEX = 0; 
+        $("#chat-submit").click(function(e) {
+          e.preventDefault();
+          var msg = $("#chat-input").val(); 
+          if(msg.trim() == ''){
+            return false;
+          }
+          generate_message(msg, 'self');
+          const send_input = JSON.stringify(msg)
+          $.ajax({
+            url:"/getprediction",
+            type:"POST",
+            contentType: "application/json",
+            data: JSON.stringify(send_input),
+            success: function(response){
+              reply = response;
+              
+            }
+          })
+          setTimeout(function(){
+            generate_message(reply, 'user')
+          }, 1000)
+        })
+        
+        function generate_message(msg, type) {
+          INDEX++;
+          var str="";
+          str += "<div id='cm-msg-"+INDEX+"' class=\"chat-msg "+type+"\">";
+          str += "          <div class=\"cm-msg-text\">";
+          str += msg;
+          str += "          <\/div>";
+          str += "        <\/div>";
+          $(".chat-logs").append(str);
+          $("#cm-msg-"+INDEX).hide().fadeIn(300);
+          if(type == 'self'){
+          $("#chat-input").val(''); 
+          }    
+          $(".chat-logs").stop().animate({ scrollTop: $(".chat-logs")[0].scrollHeight}, 1000);    
+        }  
+      })
+  </script>
+  <title>Covid Chatbot</title>  
+</head>
+
+<body>
+  <div class="chat-box">
+    <div class="chat-header">Covid Chatbot</div>
+    <div class="chat-body">
+      <div class="'chat-overlay"></div>
+      <div class="chat-logs"></div>
+    </div>
+    <div class="chat-input"> 
+      <form>
+        <input type="text" id="chat-input" name="Input" required="required" placeholder="Can my pet get covid? How to prevent covid infections?"/>
+        <button type="submit" class="chat-submit" id="chat-submit"><i class="material-icons">send</i></button>
+      </form>
+    </div>
+  </div>
+  
+</body>
+</html>
